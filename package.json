@@ -1,7 +1,7 @@
 {
   "name": "grunt-upx",
   "description": "By using upx.exe this plugin is able to compress executables files up to 85% of their original size.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "homepage": "https://github.com/pirumpi/grunt-upx",
   "author": {
     "name": "Carlos Martin",

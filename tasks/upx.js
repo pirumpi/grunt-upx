@@ -1,17 +1,17 @@
 /*
- * grunt-upx
- * https://github.com/pirumpi/grunt-upx
- *
- * Copyright (c) 2015 Carlos Martin
- * Licensed under the MIT license.
- */
+* grunt-upx
+* https://github.com/pirumpi/grunt-upx
+*
+* Copyright (c) 2015 Carlos Martin
+* Licensed under the MIT license.
+*/
 
 'use strict';
 
 var exec = require('child_process').exec;
 var fs = require('fs');
 var path = require('path');
-var upx = path.resolve('tasks', 'bin', 'upx.exe');
+var upx = path.resolve('node_modules','grunt-upx','tasks', 'bin', 'upx.exe');
 
 module.exports = function(grunt) {
 
@@ -51,12 +51,34 @@ module.exports = function(grunt) {
       }
     };
 
+    grunt.event.once('filesCreated', function(){
+      compressFiles(done, options, grunt);
+    });
+
+    grunt.event.once('folderChecked',function(){
+      grunt.log.writeln('Checking files');
+      data.files.src.forEach(function(f){
+
+        if(destFolder !== null){
+          var movedFile = path.resolve(destFolder, path.basename(f));
+          fs.writeFileSync(movedFile, fs.readFileSync(f));
+          fileList.push(movedFile);
+        }else{
+          fileList.push(f);
+        }
+        grunt.log.writeln('file copied');
+      });
+      grunt.event.emit('filesCreated');
+    });
+
     if(destFolder !== null){
       fs.exists(destFolder, function(exist){
         if(!exist){
           fs.mkdir(destFolder, function(err){
             if(!err){
               grunt.event.emit('folderChecked');
+            }else{
+              error(err, grunt, done);
             }
             grunt.log.writeln('folder created');
           });
@@ -66,29 +88,9 @@ module.exports = function(grunt) {
         }
       });
     }else{
-      grunt.event.emit('folderChecked');
       grunt.log.writeln('no destination folder found');
+      grunt.event.emit('folderChecked');
     }
-
-
-    grunt.event.once('folderChecked',function(){
-      data.files.src.forEach(function(f){
-        if(destFolder !== null){
-          var movedFile = path.resolve(destFolder, path.basename(f));
-          fs.writeFileSync(movedFile, fs.readFileSync(f));
-          fileList.push(movedFile);
-        }else{
-          fileList.push(f);
-        }
-
-        grunt.log.writeln('file copied');
-      });
-      grunt.event.emit('filesCreated');
-    });
-
-    grunt.event.once('filesCreated', function(){
-      compressFiles(done, options, grunt);
-    });
 
   });
 
